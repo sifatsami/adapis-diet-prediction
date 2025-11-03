@@ -27,7 +27,7 @@ The dataset includes 116 primate molar samples across multiple genera with the f
    A comparison was made between *Folivore* and *Frugivore–Folivore* diets to test for statistical differences across the four features.
 
    **Feature Comparison: Folivore vs Frugivore–Folivore**  
-   ![Feature Comparison Plot](ADD-YOUR-FIGURE-LINK-HERE)
+   ![Feature Comparison Plot](https://github.com/sifatsami/adapis-diet-prediction/blob/main/Folivore%20vs%20Frugivore%E2%88%92Folivore.png?raw=true)
 
    T-tests showed no significant difference (*p* > 0.05), leading to the merging of these two diet categories.  
 3. **Model Training:**  
@@ -50,16 +50,4 @@ The dataset includes 116 primate molar samples across multiple genera with the f
 
 ## Tools & Libraries
 - **Language:** R  
-- **Libraries:** `tidyverse`, `MASS`, `ggplot2`, `dplyr`  
-
----
-
-## Conclusion
-The study demonstrates that **molar geometry** can be a reliable proxy for predicting dietary behavior in extinct primates.  
-*Adapis* was likely **omnivorous**, consistent with its diverse molar morphology and broader ecological adaptability.
-
----
-
-## Author
-**Sifat Islam**  
-*Data Science Student | Evolutionary Data Enthusiast*
+- **Libraries:** `tidyverse`, `MASS`, `ggplot2`, `dplyr`
