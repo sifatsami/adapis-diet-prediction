@@ -1,0 +1,123 @@
+
+---
+title: "Predicting the Diet of Extinct Genus 'Adapis' using LDA"
+author: "SIFAT ISLAM"
+date: "2025-05-18"
+output:
+  pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(MASS)
+```
+
+# Introduction
+
+This project aims to explore primate molar geometric features and predict the dietary preferences of extinct monkey genera. We focus on Adapis, using a supervised classification approach with Linear Discriminant Analysis (LDA). The secondary objective is to determine whether Frugivore-Folivore diets are statistically distinguishable from Folivore diets.
+
+# Data Overview
+
+```{r load-data}
+# Load data
+molars <- read.csv("/Users/admin/Downloads/data.csv")
+
+# Structure check
+str(molars)
+summary(molars)
+```
+
+# Missing Diet Data
+
+```{r handle-na}
+# Number of missing diet labels
+table(is.na(molars$Diet))
+
+# Check actual column names
+colnames(molars)
+
+# View unique values from all columns for rows with NA Diet
+molars %>% 
+  filter(is.na(Diet)) %>% 
+  head()  # see what it contains
+
+```
+
+# Comparing Folivore vs. Frugivore-Folivore
+
+```{r compare-groups}
+# Subset data
+subset_data <- molars %>% filter(Diet %in% c("Folivore", "Frugivore-Folivore"))
+
+# Boxplot comparison
+subset_data %>%
+  pivot_longer(cols = c(DNE, positive_DNE, surface_area, positive_surface_area),
+               names_to = "Feature", values_to = "Value") %>%
+  ggplot(aes(x = Diet, y = Value, fill = Diet)) +
+  geom_boxplot() +
+  facet_wrap(~Feature, scales = "free") +
+  theme_minimal() +
+  labs(title = "Feature Comparison: Folivore vs Frugivore-Folivore")
+
+# T-tests
+pvals <- c(
+  t.test(DNE ~ Diet, data = subset_data)$p.value,
+  t.test(positive_DNE ~ Diet, data = subset_data)$p.value,
+  t.test(surface_area ~ Diet, data = subset_data)$p.value,
+  t.test(positive_surface_area ~ Diet, data = subset_data)$p.value
+)
+names(pvals) <- c("DNE", "positive_DNE", "surface_area", "positive_surface_area")
+pvals
+```
+
+Decision: Since all p-values are above 0.05, we merge Frugivore-Folivore with Folivore.
+
+# Preprocessing for Classification
+
+```{r preprocessing}
+# Merge classes
+molars <- molars %>% mutate(Diet = ifelse(Diet == "Frugivore-Folivore", "Folivore", Diet))
+
+# Remove rows with missing Diets
+train_data <- molars %>% filter(!is.na(Diet))
+```
+
+# Training LDA Classifier
+
+```{r lda-model}
+# Train model
+lda_model <- lda(Diet ~ DNE + positive_DNE + surface_area + positive_surface_area, data = train_data)
+
+# Predict on training set
+lda_pred <- predict(lda_model)
+
+# Confusion Matrix
+table(Predicted = lda_pred$class, Actual = train_data$Diet)
+
+# Accuracy
+mean(lda_pred$class == train_data$Diet)
+```
+
+# Predicting the Diet of Adapis
+
+```{r predict-adapis}
+# Filter Adapis
+adapis_data <- molars %>% filter(Genus == "Adapis")
+
+# Predict diet
+adapis_pred <- predict(lda_model, newdata = adapis_data)
+adapis_data$Predicted_Diet <- adapis_pred$class
+
+# View prediction
+adapis_data %>% dplyr::select(DNE, positive_DNE, surface_area, positive_surface_area, Genus, Predicted_Diet)
+
+# Summary of predictions
+table(adapis_data$Predicted_Diet)
+```
+
+# Conclusion
+
+All 4 Adapis samples were predicted as Omnivores, suggesting that Adapis likely consumed a broad and varied diet, consistent with omnivorous primates. The model performed with 70.27% accuracy on the training data.
+
+These findings support the hypothesis that molar geometry provides reliable information about dietary habits, even for extinct genera.
